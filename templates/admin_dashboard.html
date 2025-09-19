@@ -1,0 +1,38 @@
+{% extends 'layout.html' %}
+{% block content %}
+<h4>Admin Dashboard</h4>
+<div class="card shadow-sm">
+  <div class="card-body">
+    {% if complaints %}
+      <table class="table">
+        <thead><tr><th>#</th><th>Category</th><th>Location</th><th>Status</th><th>Technician</th><th>Assign</th></tr></thead>
+        <tbody>
+        {% for c in complaints %}
+          <tr>
+            <td>{{ c['id'] }}</td>
+            <td>{{ c['category'] }}</td>
+            <td>{{ c['location'] }}</td>
+            <td>{{ c['status'] }}</td>
+            <td>{{ c['technician_id'] or 'Not assigned' }}</td>
+            <td>
+              <form method="post" action="{{ url_for('assign_technician') }}" class="d-flex">
+                <input type="hidden" name="complaint_id" value="{{ c['id'] }}">
+                <select name="technician_id" class="form-select form-select-sm me-2" required>
+                  <option value="">Select technician</option>
+                  {% for t in techs %}
+                    <option value="{{ t['id'] }}">{{ t['username'] }}</option>
+                  {% endfor %}
+                </select>
+                <button class="btn btn-sm btn-primary">Assign</button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="text-muted">No complaints</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}

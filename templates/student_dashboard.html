@@ -1,0 +1,149 @@
+{% extends 'layout.html' %}
+{% block content %}
+<style>
+  .dashboard-body {
+    background-color: #f8f9fa; /* Bootstrap light grey */
+    min-height: 100vh; /* make sure it covers full screen */
+    padding: 20px;
+  }
+</style>
+
+<div class="dashboard-body">
+  <div class="row">
+    <div class="col-md-6">
+      <div class="card shadow-sm mb-3">
+        <div class="card-body">
+          <h5>Submit a Complaint</h5>
+          <form method="post" action="{{ url_for('submit_complaint') }}">
+            <div class="mb-2">
+              <label>Category</label>
+              <select name="category" class="form-select">
+                <option>Hostel</option>
+                <option>Classroom</option>
+                <option>Lab</option>
+              </select>
+            </div>
+            <div class="mb-2">
+              <label>Location / Room No</label>
+              <input name="location" class="form-control">
+            </div>
+            <div class="mb-2">
+              <label>Description</label>
+              <textarea name="description" class="form-control" rows="3"></textarea>
+            </div>
+            <button class="btn btn-primary">Submit</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5>Your Notifications</h5>
+          {% if notifications %}
+            <ul class="list-group">
+              {% for n in notifications %}
+                <li class="list-group-item d-flex justify-content-between align-items-center">
+                  <div>
+                    <strong>{{ n['message'] }}</strong>
+                    <div class="small text-muted">{{ n['created_at'] }}</div>
+                  </div>
+                  <div>
+                    {% if n['confirmed'] == 0 %}
+                      <form method="post" action="{{ url_for('confirm_notification', noti_id=n['id']) }}">
+                        <button class="btn btn-sm btn-success">Confirm</button>
+                      </form>
+                    {% else %}
+                      <span class="badge bg-success">Confirmed</span>
+                    {% endif %}
+                  </div>
+                </li>
+              {% endfor %}
+            </ul>
+          {% else %}
+            <p class="text-muted">No notifications</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+
+    <div class="col-md-6">
+      <div class="card shadow-sm">
+        <div class="card-body">
+          <h5>Your Complaints</h5>
+          {% if complaints %}
+            <table class="table table-striped">
+              <thead>
+                <tr>
+                  <th>#</th>
+                  <th>Category</th>
+                  <th>Location</th>
+                  <th>Status</th>
+                  <th>Technician</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+              {% for c in complaints %}
+                <tr>
+                  <td>{{ c['id'] }}</td>
+                  <td>{{ c['category'] }}</td>
+                  <td>{{ c['location'] }}</td>
+                  <td>{{ c['status'] }}</td>
+                  <td>{{ c['technician_username'] or 'Not assigned' }}</td>
+                  <td>
+                    <button class="btn btn-sm btn-outline-secondary" onclick="viewDetail({{ c['id'] }})">
+                      View
+                    </button>
+                  </td>
+                </tr>
+              {% endfor %}
+              </tbody>
+            </table>
+          {% else %}
+            <p class="text-muted">No complaints yet</p>
+          {% endif %}
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- detail modal -->
+<div class="modal fade" id="detailModal" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Complaint Detail</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="modalBody">Loading...</div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function viewDetail(id){
+  fetch('/complaint/' + id)
+    .then(r => r.json())
+    .then(d => {
+      if(d.error){
+        document.getElementById('modalBody').innerText = d.error;
+      } else {
+        const html = `
+          <p><strong>ID:</strong> ${d.id}</p>
+          <p><strong>Category:</strong> ${d.category}</p>
+          <p><strong>Location:</strong> ${d.location}</p>
+          <p><strong>Description:</strong> ${d.description}</p>
+          <p><strong>Status:</strong> ${d.status}</p>
+        `;
+        document.getElementById('modalBody').innerHTML = html;
+        var myModal = new bootstrap.Modal(document.getElementById('detailModal'));
+        myModal.show();
+      }
+    });
+}
+</script>
+{% endblock %}

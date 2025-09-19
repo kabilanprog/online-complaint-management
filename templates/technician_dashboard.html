@@ -1,0 +1,38 @@
+{% extends 'layout.html' %}
+{% block content %}
+<h4>Technician Dashboard</h4>
+<div class="card shadow-sm">
+  <div class="card-body">
+    {% if complaints %}
+      <table class="table">
+        <thead><tr><th>#</th><th>Category</th><th>Location</th><th>Status</th><th>Student</th><th>Action</th></tr></thead>
+        <tbody>
+        {% for c in complaints %}
+          <tr>
+            <td>{{ c['id'] }}</td>
+            <td>{{ c['category'] }}</td>
+            <td>{{ c['location'] }}</td>
+            <td>{{ c['status'] }}</td>
+            <td>{{ c['student_username'] }}</td>
+            <td>
+              <form method="post" action="{{ url_for('update_status') }}" class="d-flex">
+                <input type="hidden" name="complaint_id" value="{{ c['id'] }}">
+                <select name="status" class="form-select form-select-sm me-2">
+                  <option {% if c['status']=='Pending' %}selected{% endif %}>Pending</option>
+                  <option {% if c['status']=='In Progress' %}selected{% endif %}>In Progress</option>
+                  <option {% if c['status']=='Solved' %}selected{% endif %}>Solved</option>
+                  <option {% if c['status']=='Resolved' %}selected{% endif %}>Resolved</option>
+                </select>
+                <button class="btn btn-sm btn-success">Update</button>
+              </form>
+            </td>
+          </tr>
+        {% endfor %}
+        </tbody>
+      </table>
+    {% else %}
+      <p class="text-muted">No complaints assigned.</p>
+    {% endif %}
+  </div>
+</div>
+{% endblock %}
